@@ -1,0 +1,153 @@
+name: CI Pipeline
+
+# Запускається при кожному Push і Pull Request в гілки main та develop
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+
+  # ── Job 1: Build + Test для lab4 (shared library) ──────────────
+  build-lab4:
+    name: Build lab4 (shared library)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and install lab4
+        run: mvn install -DskipTests -q
+        # Запускаємо з кореня — там і є lab4 модуль
+
+      # Зберігаємо ~/.m2 для наступних jobs
+      - name: Cache lab4 artifact
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/com/example/lab4
+          key: lab4-${{ github.sha }}
+
+  # ── Job 2: Build + Test user-service ───────────────────────────
+  build-and-test-user-service:
+    name: Build & Test user-service
+    runs-on: ubuntu-latest
+    needs: build-lab4  # чекаємо поки lab4 збереться
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # Відновлюємо lab4 з кешу
+      - name: Restore lab4 cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/com/example/lab4
+          key: lab4-${{ github.sha }}
+
+      # Якщо кеш не знайдено — перебудовуємо lab4
+      - name: Install lab4 if cache miss
+        run: mvn install -DskipTests -q
+
+      - name: Build user-service
+        run: mvn -f user-service/pom.xml package -DskipTests
+
+      - name: Run unit tests
+        run: mvn -f user-service/pom.xml test
+
+      # Публікуємо результати тестів у PR
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()  # показуємо навіть якщо тести впали
+        with:
+          name: User Service Tests
+          path: user-service/target/surefire-reports/*.xml
+          reporter: java-junit
+
+  # ── Job 3: Build bus-service ────────────────────────────────────
+  build-bus-service:
+    name: Build bus-service
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build bus-service
+        run: mvn -f bus-service/pom.xml package -DskipTests
+
+  # ── Job 4: Build booking-service ───────────────────────────────
+  build-booking-service:
+    name: Build booking-service
+    runs-on: ubuntu-latest
+    needs: build-lab4
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Restore lab4 cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/com/example/lab4
+          key: lab4-${{ github.sha }}
+
+      - name: Install lab4 if cache miss
+        run: mvn install -DskipTests -q
+
+      - name: Install user-service
+        run: mvn -f user-service/pom.xml install -DskipTests -q
+
+      - name: Install bus-service
+        run: mvn -f bus-service/pom.xml install -DskipTests -q
+
+      - name: Build booking-service
+        run: mvn -f booking-service/pom.xml package -DskipTests
+
+  # ── Job 5: Build eureka-server ──────────────────────────────────
+  build-eureka:
+    name: Build eureka-server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build eureka-server
+        run: mvn -f eureka-server/pom.xml package -DskipTests
