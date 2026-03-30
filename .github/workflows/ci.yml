@@ -1,6 +1,5 @@
 name: CI Pipeline
 
-# Запускається при кожному Push і Pull Request в гілки main та develop
 on:
   push:
     branches: [ master, develop ]
@@ -9,7 +8,7 @@ on:
 
 jobs:
 
-  # ── Job 1: Build + Test для lab4 (shared library) ──────────────
+  # ── Job 1: Build lab4 (shared library) ─────────────────────────
   build-lab4:
     name: Build lab4 (shared library)
     runs-on: ubuntu-latest
@@ -27,24 +26,24 @@ jobs:
 
       - name: Build and install lab4
         run: mvn install -DskipTests -q
-        # Запускаємо з кореня — там і є lab4 модуль
 
-      # Зберігаємо ~/.m2 для наступних jobs
       - name: Cache lab4 artifact
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository/com/example/lab4
           key: lab4-${{ github.sha }}
 
-  # ── Job 2: Build + Test user-service ───────────────────────────
+  # ── Job 2: Build + Test + SonarCloud (user-service) ────────────
   build-and-test-user-service:
     name: Build & Test user-service
     runs-on: ubuntu-latest
-    needs: build-lab4  # чекаємо поки lab4 збереться
+    needs: build-lab4
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # потрібно для SonarCloud (аналіз історії змін)
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -53,14 +52,12 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Відновлюємо lab4 з кешу
       - name: Restore lab4 cache
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository/com/example/lab4
           key: lab4-${{ github.sha }}
 
-      # Якщо кеш не знайдено — перебудовуємо lab4
       - name: Install lab4 if cache miss
         run: mvn install -DskipTests -q
 
@@ -70,14 +67,28 @@ jobs:
       - name: Run unit tests
         run: mvn -f user-service/pom.xml test
 
-      # Публікуємо результати тестів у PR
       - name: Publish test results
         uses: dorny/test-reporter@v1
-        if: always()  # показуємо навіть якщо тести впали
+        if: always()
         with:
           name: User Service Tests
           path: user-service/target/surefire-reports/*.xml
           reporter: java-junit
+
+      # ── SonarCloud аналіз ───────────────────────────────────────
+      - name: SonarCloud analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # для коментарів у PR
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn -f user-service/pom.xml sonar:sonar \
+            -Dsonar.projectKey=nestea4 \
+            -Dsonar.organization=nestea \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java \
+            -Dsonar.java.coveragePlugin=jacoco \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 
   # ── Job 3: Build bus-service ────────────────────────────────────
   build-bus-service:
