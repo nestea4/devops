@@ -87,8 +87,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn -f user-service/pom.xml sonar:sonar \
-            -Dsonar.projectKey=nestea4 \
-            -Dsonar.organization=nestea \
+            -Dsonar.projectKey=nestea4_devops \
+            -Dsonar.organization=nestea4 \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.sources=src/main/java \
             -Dsonar.tests=src/test/java \
