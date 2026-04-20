@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  labels:
+    app: user-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: nestea536/user-service:latest
+          ports:
+            - containerPort: 8081
+          env:
+            # Підключення до MySQL — за іменем сервісу mysql-svc
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql-svc:3306/transportation?useSSL=false&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "Melamori44Sql"
+            # Вимикаємо Eureka і Kafka (у цій лабораторній розгортаємо тільки user-service)
+            - name: EUREKA_CLIENT_ENABLED
+              value: "false"
+            - name: SPRING_AUTOCONFIGURE_EXCLUDE
+              value: "org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration,org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
+          # readinessProbe — перевіряє чи под готовий приймати запити
+          readinessProbe:
+            tcpSocket:
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          # livenessProbe — перевіряє чи под досі живий
+          livenessProbe:
+            tcpSocket:
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 20
