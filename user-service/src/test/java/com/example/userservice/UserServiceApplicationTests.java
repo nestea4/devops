@@ -7,6 +7,6 @@ class UserServiceApplicationTests {
     @Test
     void contextLoads() {
         // Тест контексту відключено — потребує БД, Kafka, Eureka
-        // Юніт тести знаходяться в UserServiceTest.java
+        // Юніт тести знаходяться в UserServiceTest.jav a
     }
 }
