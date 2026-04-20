@@ -71,7 +71,9 @@ class UserServiceTest {
         User result = userService.findById(1L);
 
         assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getEmail()).isEqualTo("test@example.com");
+        // Навмисно неправильне значення — тест впаде
+        assertThat(result.getEmail()).isEqualTo("WRONG_EMAIL@example.com");
+        //assertThat(result.getEmail()).isEqualTo("test@example.com");
     }
 
     @Test
