@@ -38,6 +38,11 @@ jobs:
     name: Build & Test user-service
     runs-on: ubuntu-latest
     needs: build-lab4
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+      issues: read
 
     steps:
       - name: Checkout code
