@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-user-service
+  labels:
+    app: user-service
+spec:
+  # Кількість реплік береться з values.yaml
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: user-service
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: user-service
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: user-service
+          # Образ підставляється з values.yaml
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://{{ .Values.db.host }}:{{ .Values.db.port }}/{{ .Values.db.name }}?useSSL=false&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "{{ .Values.db.username }}"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "{{ .Values.db.password }}"
+            - name: EUREKA_CLIENT_ENABLED
+              value: "{{ .Values.springProfiles.eurekaEnabled }}"
+            - name: SPRING_AUTOCONFIGURE_EXCLUDE
+              value: "{{ .Values.springProfiles.autoconfigureExclude }}"
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}

@@ -1,0 +1,40 @@
+# Default values for user-service-chart
+# Цей файл містить параметри, які підставляються у шаблони чарту
+
+# Кількість реплік застосунку
+replicaCount: 2
+
+# Налаштування Docker образу
+image:
+  repository: nestea536/user-service
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Налаштування сервісу (Service)
+service:
+  type: NodePort
+  port: 8081
+  targetPort: 8081
+
+# Параметри підключення до бази даних
+# host відповідає імені сервісу який створює bitnami/mysql чарт
+db:
+  host: mydb-mysql
+  port: 3306
+  name: transportation
+  username: root
+  password: "Melamori44Sql"
+
+# Вимикаємо Eureka та Kafka — у цій лабораторній розгортаємо тільки user-service
+springProfiles:
+  eurekaEnabled: "false"
+  autoconfigureExclude: "org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration,org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
+
+# Readiness та Liveness probes
+probes:
+  readiness:
+    initialDelaySeconds: 90
+    periodSeconds: 15
+  liveness:
+    initialDelaySeconds: 180
+    periodSeconds: 30
