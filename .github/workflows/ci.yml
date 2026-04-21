@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  # ── Job 1: Build lab4 (shared library) ─────────────────────────
+  # Job 1: Build lab4 (shared library)
   build-lab4:
     name: Build lab4 (shared library)
     runs-on: ubuntu-latest
@@ -33,7 +33,7 @@ jobs:
           path: ~/.m2/repository/com/example/lab4
           key: lab4-${{ github.sha }}
 
-  # ── Job 2: Build + Test + SonarCloud (user-service) ────────────
+  # Job 2: Build + Test + SonarCloud (user-service)
   build-and-test-user-service:
     name: Build & Test user-service
     runs-on: ubuntu-latest
@@ -80,7 +80,7 @@ jobs:
           path: user-service/target/surefire-reports/*.xml
           reporter: java-junit
 
-      # ── SonarCloud аналіз ───────────────────────────────────────
+      # SonarCloud аналіз
       - name: SonarCloud analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # для коментарів у PR
@@ -95,7 +95,7 @@ jobs:
             -Dsonar.java.coveragePlugin=jacoco \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 
-  # ── Job 3: Build bus-service ────────────────────────────────────
+  # Job 3: Build bus-service
   build-bus-service:
     name: Build bus-service
     runs-on: ubuntu-latest
@@ -114,7 +114,7 @@ jobs:
       - name: Build bus-service
         run: mvn -f bus-service/pom.xml package -DskipTests
 
-  # ── Job 4: Build booking-service ───────────────────────────────
+  # Job 4: Build booking-service
   build-booking-service:
     name: Build booking-service
     runs-on: ubuntu-latest
@@ -149,7 +149,7 @@ jobs:
       - name: Build booking-service
         run: mvn -f booking-service/pom.xml package -DskipTests
 
-  # ── Job 5: Build eureka-server ──────────────────────────────────
+  # Job 5: Build eureka-server
   build-eureka:
     name: Build eureka-server
     runs-on: ubuntu-latest

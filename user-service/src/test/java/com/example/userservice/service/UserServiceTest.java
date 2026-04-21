@@ -40,7 +40,7 @@ class UserServiceTest {
         user.setPhoneNumber("1234567890");
     }
 
-    // ── findAll ──────────────────────────────────────────────────
+    // findAll
 
     @Test
     void findAll_ShouldReturnAllUsers() {
@@ -62,7 +62,7 @@ class UserServiceTest {
         assertThat(result).isEmpty();
     }
 
-    // ── findById ─────────────────────────────────────────────────
+    //  findById
 
     @Test
     void findById_WhenUserExists_ShouldReturnUser() {
@@ -71,9 +71,9 @@ class UserServiceTest {
         User result = userService.findById(1L);
 
         assertThat(result.getId()).isEqualTo(1L);
-        // Навмисно неправильне значення — тест впаде
-        assertThat(result.getEmail()).isEqualTo("WRONG_EMAIL@example.com");
-        //assertThat(result.getEmail()).isEqualTo("test@example.com");
+        // неправильне значення тест впаде
+        //assertThat(result.getEmail()).isEqualTo("WRONG_EMAIL@example.com");
+        assertThat(result.getEmail()).isEqualTo("test@example.com");
     }
 
     @Test
@@ -85,7 +85,7 @@ class UserServiceTest {
                 .hasMessageContaining("99");
     }
 
-    // ── findByEmail ───────────────────────────────────────────────
+    // findByEmail
 
     @Test
     void findByEmail_WhenUserExists_ShouldReturnUser() {
@@ -105,7 +105,7 @@ class UserServiceTest {
                 .hasMessageContaining("unknown@example.com");
     }
 
-    // ── save ──────────────────────────────────────────────────────
+    // save
 
     @Test
     void save_ShouldSaveAndReturnUser() {
@@ -118,7 +118,7 @@ class UserServiceTest {
         verify(userRepository, times(1)).save(user);
     }
 
-    // ── update ────────────────────────────────────────────────────
+    //  update
 
     @Test
     void update_WhenEmailNotChanged_ShouldUpdateUser() {
@@ -158,7 +158,7 @@ class UserServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
-    // ── deleteById ────────────────────────────────────────────────
+    //  deleteById
 
     @Test
     void deleteById_WhenUserExists_ShouldDelete() {
@@ -180,7 +180,7 @@ class UserServiceTest {
         verify(userRepository, never()).deleteById(any());
     }
 
-    // ── existsByEmail ─────────────────────────────────────────────
+    // existsByEmail
 
     @Test
     void existsByEmail_WhenExists_ShouldReturnTrue() {
