@@ -25,7 +25,6 @@ db:
   username: root
   password: "Melamori44Sql"
 
-# Вимикаємо Eureka та Kafka — у цій лабораторній розгортаємо тільки user-service
 springProfiles:
   eurekaEnabled: "false"
   autoconfigureExclude: "org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration,org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
